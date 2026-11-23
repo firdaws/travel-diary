@@ -3,16 +3,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { countries } from "@/lib/countries";
 
 export default function ProfileForm({
   userId,
   initialName,
   initialPassport,
+  countries,
 }: {
   userId: string;
   initialName: string;
   initialPassport: string;
+  countries: { code: string; name: string }[];
 }) {
   const router = useRouter();
   const supabase = createClient();

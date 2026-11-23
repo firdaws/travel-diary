@@ -13,6 +13,11 @@ export default async function ProfilePage() {
     .eq("id", user.id)
     .single();
 
+  const { data: countries } = await supabase
+    .from("countries")
+    .select("code, name")
+    .order("name");
+
   return (
     <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-4 p-6">
       <h1 className="text-2xl font-semibold">Your profile</h1>
@@ -23,6 +28,7 @@ export default async function ProfilePage() {
         userId={user.id}
         initialName={profile?.name ?? ""}
         initialPassport={profile?.passport_country ?? ""}
+        countries={countries ?? []}
       />
     </main>
   );

@@ -23,7 +23,21 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            "group_trip_members": {
+            "countries": {
+                  Row: {
+                    "code": string,"name": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "code": string,"name": string
+                  }
+                  Update: {
+                    "code"?: string,"name"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"group_trip_members": {
                   Row: {
                     "group_trip_id": string,"joined_at": string,"role": Database["public"]['Enums']["group_trip_role"],"user_id": string
                   }
@@ -75,7 +89,13 @@ isOneToOne: false
                     "created_at"?: string,"id"?: string,"name"?: string,"passport_country"?: string | null
                   }
                   Relationships: [
-                    
+                    {
+      foreignKeyName: "profiles_passport_country_fkey"
+      columns: ["passport_country"]
+isOneToOne: false
+      referencedRelation: "countries"
+      referencedColumns: ["code"]
+    }
                   ]
                 },"trips": {
                   Row: {
@@ -90,6 +110,12 @@ isOneToOne: false
                   }
                   Relationships: [
                     {
+      foreignKeyName: "trips_country_code_fkey"
+      columns: ["country_code"]
+isOneToOne: false
+      referencedRelation: "countries"
+      referencedColumns: ["code"]
+    },{
       foreignKeyName: "trips_user_id_fkey"
       columns: ["user_id"]
 isOneToOne: false
@@ -110,6 +136,12 @@ isOneToOne: false
                   }
                   Relationships: [
                     {
+      foreignKeyName: "wishlist_items_country_code_fkey"
+      columns: ["country_code"]
+isOneToOne: false
+      referencedRelation: "countries"
+      referencedColumns: ["code"]
+    },{
       foreignKeyName: "wishlist_items_user_id_fkey"
       columns: ["user_id"]
 isOneToOne: false

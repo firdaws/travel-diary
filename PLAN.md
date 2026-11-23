@@ -46,8 +46,8 @@ A group trip stores no places itself. It reads its members' `trips` and `wishlis
 | 1 | Sign-in (email+password, magic link, Google), profiles | **Auth**, triggers | done (Google untested) |
 | 2 | Group trips, members, email invites | **RLS**, **Edge Functions**, Auth invite | done |
 | 2b | Personal `trips` and `wishlist_items` tables with sharing RLS | RLS across tables | done (tables only, no UI) |
-| 3 | Seed `countries`; replace the temporary country list | seed files, foreign keys | next |
-| 4 | UI: my visited list and my wishlist, "Mark as visited" | CRUD, **RPC** (Postgres function) | |
+| 3 | Seed `countries`; replace the temporary country list | reference data in migrations, foreign keys | done |
+| 4 | UI: my visited list and my wishlist, "Mark as visited" | CRUD, **RPC** (Postgres function) | next |
 | 5 | Group trip view: all members' places together, filter by member | joins, views | |
 | 6 | Trip photos | **Storage** + storage policies | |
 | 7 | Visa lookup: check our table, call Travel Buddy only on a miss, cache | Edge Functions, secrets | |
@@ -76,5 +76,6 @@ A group trip stores no places itself. It reads its members' `trips` and `wishlis
 ## Open items
 
 - Sign up for a Travel Buddy API key and confirm free-tier limits; check its Endpoints tab for a countries list
-- Download the ISO alpha-2 countries CSV for the seed (phase 3)
+- Phase 7: the ISO list has 249 countries and no Kosovo (`XK`); check Travel Buddy's codes against it
+- Cosmetic: country names sort by byte order, so "Åland Islands" lands second
 - Google OAuth app setup (needs a Google Cloud project)
