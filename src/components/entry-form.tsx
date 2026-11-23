@@ -1,4 +1,8 @@
-import { field, btnPrimary } from "@/lib/ui";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Textarea } from "@/components/ui/textarea";
 
 type Country = { code: string; name: string };
 
@@ -17,35 +21,41 @@ export default function EntryForm({
   defaults?: { country_code?: string; city?: string | null; month?: string; notes?: string | null };
 }) {
   return (
-    <form action={action} className="flex flex-col gap-3">
-      <label className="flex flex-col gap-1 text-sm">
-        Country
-        <select name="country_code" required defaultValue={defaults?.country_code ?? ""} className={field}>
-          <option value="">Choose a country</option>
+    <form action={action} className="grid gap-4">
+      <div className="grid gap-1.5">
+        <Label htmlFor="country_code">Country</Label>
+        <NativeSelect id="country_code" name="country_code" required defaultValue={defaults?.country_code ?? ""}>
+          <option value="" disabled>Choose a country</option>
           {countries.map((c) => (
             <option key={c.code} value={c.code}>{c.name}</option>
           ))}
-        </select>
-      </label>
-      <label className="flex flex-col gap-1 text-sm">
-        City (optional)
-        <input name="city" maxLength={120} defaultValue={defaults?.city ?? ""} className={field} />
-      </label>
-      <label className="flex flex-col gap-1 text-sm">
-        {kind === "trip" ? "Month visited" : "Target month (optional)"}
-        <input
+        </NativeSelect>
+      </div>
+      <div className="grid gap-1.5">
+        <Label htmlFor="city">City <span className="font-normal text-muted-foreground">(optional)</span></Label>
+        <Input id="city" name="city" maxLength={120} defaultValue={defaults?.city ?? ""} placeholder="Lisbon" />
+      </div>
+      <div className="grid gap-1.5">
+        <Label htmlFor="month">
+          {kind === "trip" ? "Month visited" : "Target month"}{" "}
+          {kind === "wish" && <span className="font-normal text-muted-foreground">(optional)</span>}
+        </Label>
+        <Input
+          id="month"
           name="month"
           type="month"
           required={kind === "trip"}
           defaultValue={defaults?.month ?? ""}
-          className={field}
+          
         />
-      </label>
-      <label className="flex flex-col gap-1 text-sm">
-        Notes (optional)
-        <textarea name="notes" rows={3} maxLength={5000} defaultValue={defaults?.notes ?? ""} className={field} />
-      </label>
-      <button className={btnPrimary}>{submitLabel}</button>
+      </div>
+      <div className="grid gap-1.5">
+        <Label htmlFor="notes">Notes <span className="font-normal text-muted-foreground">(optional)</span></Label>
+        <Textarea id="notes" name="notes" rows={3} maxLength={5000} defaultValue={defaults?.notes ?? ""} placeholder="What do you want to remember?" />
+      </div>
+      <div >
+        <Button type="submit" size="lg">{submitLabel}</Button>
+      </div>
     </form>
   );
 }
