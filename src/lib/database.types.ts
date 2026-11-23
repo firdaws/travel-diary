@@ -152,7 +152,15 @@ isOneToOne: false
                 }
           }
           Views: {
-            [_ in never]: never
+            "group_trip_places": {
+                  Row: {
+                    "city": string | null,"country_code": string | null,"country_name": string | null,"group_trip_id": string | null,"kind": string | null,"member_name": string | null,"month_on": string | null,"notes": string | null,"place_id": string | null,"user_id": string | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    
+                  ]
+                }
           }
           Functions: {
             "find_user_id_by_email":

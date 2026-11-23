@@ -48,8 +48,8 @@ A group trip stores no places itself. It reads its members' `trips` and `wishlis
 | 2b | Personal `trips` and `wishlist_items` tables with sharing RLS | RLS across tables | done (tables only, no UI) |
 | 3 | Seed `countries`; replace the temporary country list | reference data in migrations, foreign keys | done |
 | 4 | UI: my visited list and my wishlist, "Mark as visited" | CRUD, **RPC** (Postgres function) | done (photos come in phase 6) |
-| 5 | Group trip view: all members' places together, filter by member | joins, views | next |
-| 6 | Trip photos | **Storage** + storage policies | |
+| 5 | Group trip view: all members' places together, filter by member | joins, views (`security_invoker`) | done |
+| 6 | Trip photos | **Storage** + storage policies | next |
 | 7 | Visa lookup: check our table, call Travel Buddy only on a miss, cache | Edge Functions, secrets | |
 | 8 | Live updates in the group trip; event when someone joins | **Realtime**, **database webhooks** | |
 | 9 | World map and per-group-trip theme | JSON columns | |
