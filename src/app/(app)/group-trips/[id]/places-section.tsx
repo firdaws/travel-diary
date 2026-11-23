@@ -3,6 +3,7 @@ import { Globe2 } from "lucide-react";
 import type { Database } from "@/lib/database.types";
 import { formatMonth } from "@/lib/dates";
 import { cn } from "@/lib/utils";
+import type { PhotoItem } from "@/lib/photos";
 import { Card, CardContent } from "@/components/ui/card";
 import EmptyState from "@/components/empty-state";
 
@@ -14,11 +15,13 @@ export default function PlacesSection({
   groupTripId,
   members,
   places,
+  photos,
   selectedMember,
 }: {
   groupTripId: string;
   members: Member[];
   places: Place[];
+  photos: Record<string, PhotoItem[]>;
   selectedMember?: string;
 }) {
   // Group rows by country.
@@ -96,12 +99,27 @@ export default function PlacesSection({
                       >
                         {r.kind === "visited" ? "Been" : "Wants to go"}
                       </span>
-                      <span>
+                      <span className="min-w-0">
                         <strong className="font-medium">{r.member_name || "Unnamed"}</strong>
                         <span className="text-muted-foreground">
                           {r.city ? ` · ${r.city}` : ""}
                           {r.month_on ? ` · ${r.kind === "wishlist" ? "aiming for " : ""}${formatMonth(r.month_on)}` : ""}
                         </span>
+                        {r.kind === "visited" && r.place_id && photos[r.place_id]?.length > 0 && (
+                          <span className="mt-1.5 flex flex-wrap gap-1.5">
+                            {photos[r.place_id].map((ph, i) => (
+                              <a key={ph.id} href={ph.url} target="_blank" rel="noreferrer" aria-label={`Open photo ${i + 1} from ${r.member_name}'s trip to ${c.name}`}>
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={ph.url}
+                                  alt={`${r.member_name}'s photo ${i + 1} from ${c.name}`}
+                                  loading="lazy"
+                                  className="size-12 rounded-md border object-cover"
+                                />
+                              </a>
+                            ))}
+                          </span>
+                        )}
                       </span>
                     </li>
                   ))}

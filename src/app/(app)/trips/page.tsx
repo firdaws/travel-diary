@@ -5,7 +5,9 @@ import { createClient } from "@/lib/supabase/server";
 import { formatMonth } from "@/lib/dates";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { loadPhotos } from "@/lib/photos";
 import EntryForm from "@/components/entry-form";
+import TripPhotos from "@/components/trip-photos";
 import EmptyState from "@/components/empty-state";
 import PageHeader from "@/components/page-header";
 import { addTrip, deleteTrip } from "./actions";
@@ -24,6 +26,8 @@ export default async function TripsPage() {
       .eq("user_id", user.id)
       .order("visited_on", { ascending: false }),
   ]);
+
+  const photos = await loadPhotos(supabase, trips?.map((t) => t.id) ?? []);
 
   return (
     <>
@@ -54,6 +58,14 @@ export default async function TripsPage() {
                   </p>
                   <p className="text-sm text-muted-foreground">{formatMonth(t.visited_on)}</p>
                   {t.notes && <p className="mt-2 text-sm whitespace-pre-line">{t.notes}</p>}
+                  <div className="mt-3">
+                    <TripPhotos
+                      tripId={t.id}
+                      userId={user.id}
+                      photos={photos[t.id] ?? []}
+                      label={t.countries?.name ?? t.country_code}
+                    />
+                  </div>
                 </div>
                 <div className="flex shrink-0 gap-1">
                   <Button variant="ghost" size="icon" aria-label={`Edit ${t.countries?.name ?? t.country_code}`} render={<Link href={`/trips/${t.id}/edit`} />}>

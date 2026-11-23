@@ -50,8 +50,8 @@ A group trip stores no places itself. It reads its members' `trips` and `wishlis
 | 4 | UI: my visited list and my wishlist, "Mark as visited" | CRUD, **RPC** (Postgres function) | done (photos come in phase 6) |
 | 5 | Group trip view: all members' places together, filter by member | joins, views (`security_invoker`) | done |
 | UI | Design system: shadcn/ui, warm teal palette, serif headings, app shell, dark mode, mobile | frontend only | done |
-| 6 | Trip photos | **Storage** + storage policies | next |
-| 7 | Visa lookup: check our table, call Travel Buddy only on a miss, cache | Edge Functions, secrets | |
+| 6 | Trip photos | **Storage** (private bucket, signed URLs, storage RLS) | done |
+| 7 | Visa lookup: check our table, call Travel Buddy only on a miss, cache | Edge Functions, secrets | next |
 | 8 | Live updates in the group trip; event when someone joins | **Realtime**, **database webhooks** | |
 | 9 | World map and per-group-trip theme | JSON columns | |
 | 10 | Tests, CI, preview deploys, production deploy | see below | |
@@ -77,6 +77,7 @@ A group trip stores no places itself. It reads its members' `trips` and `wishlis
 
 ## Open items
 
+- Possible later: Supabase Image Transformations for thumbnails (thumbnails currently load the resized full image)
 - Sign up for a Travel Buddy API key and confirm free-tier limits; check its Endpoints tab for a countries list
 - Phase 7: the ISO list has 249 countries and no Kosovo (`XK`); check Travel Buddy's codes against it
 - Cosmetic: country names sort by byte order, so "Åland Islands" lands second

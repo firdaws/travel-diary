@@ -97,6 +97,32 @@ isOneToOne: false
       referencedColumns: ["code"]
     }
                   ]
+                },"trip_photos": {
+                  Row: {
+                    "created_at": string,"id": string,"storage_path": string,"trip_id": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"storage_path": string,"trip_id": string,"user_id"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"storage_path"?: string,"trip_id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "trip_photos_trip_id_fkey"
+      columns: ["trip_id"]
+isOneToOne: false
+      referencedRelation: "trips"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "trip_photos_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"trips": {
                   Row: {
                     "city": string | null,"country_code": string,"created_at": string,"id": string,"notes": string | null,"user_id": string,"visited_on": string
@@ -163,7 +189,10 @@ isOneToOne: false
                 }
           }
           Functions: {
-            "find_user_id_by_email":
+            "can_view_photo_folder":
+{ Args: { "p_folder": string }; Returns: boolean
+                           },
+"find_user_id_by_email":
 { Args: { "p_email": string }; Returns: string
                            },
 "is_group_trip_member":

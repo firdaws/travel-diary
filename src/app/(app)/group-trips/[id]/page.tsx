@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import PageHeader from "@/components/page-header";
+import { loadPhotos } from "@/lib/photos";
 import { removeMember } from "../actions";
 import InviteForm from "./invite-form";
 import PlacesSection from "./places-section";
@@ -39,6 +40,10 @@ export default async function GroupTripPage({ params, searchParams }: PageProps<
   if (selectedMember) placesQuery = placesQuery.eq("user_id", selectedMember);
   const { data: places } = await placesQuery;
 
+  // Photos of the visited places shown. Storage rules decide what we may see.
+  const visitedIds = (places ?? []).filter((p) => p.kind === "visited" && p.place_id).map((p) => p.place_id!);
+  const photos = await loadPhotos(supabase, visitedIds);
+
   return (
     <>
       <Button variant="ghost" size="sm" className="mb-2 -ml-2" render={<Link href="/group-trips" />}>
@@ -58,6 +63,7 @@ export default async function GroupTripPage({ params, searchParams }: PageProps<
             name: m.profiles?.name ?? "",
           }))}
           places={places ?? []}
+          photos={photos}
           selectedMember={selectedMember}
         />
 

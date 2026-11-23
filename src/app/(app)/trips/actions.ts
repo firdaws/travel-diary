@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { monthInputToDate } from "@/lib/dates";
+import { PHOTO_BUCKET } from "@/lib/photos";
 
 function read(formData: FormData) {
   return {
@@ -38,6 +39,17 @@ export async function updateTrip(id: string, formData: FormData) {
 
 export async function deleteTrip(id: string) {
   const supabase = await createClient();
+
+  // Deleting a trip removes its trip_photos rows automatically (on delete cascade),
+  // but NOT the files in Storage. Remove those first so nothing is left behind.
+  const { data: photos } = await supabase.from("trip_photos").select("storage_path").eq("trip_id", id);
+  if (photos?.length) {
+    const { error: removeError } = await supabase.storage
+      .from(PHOTO_BUCKET)
+      .remove(photos.map((p) => p.storage_path));
+    if (removeError) throw new Error(removeError.message);
+  }
+
   const { error } = await supabase.from("trips").delete().eq("id", id);
   if (error) throw new Error(error.message);
   revalidatePath("/trips");
