@@ -149,6 +149,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"visa_requirements": {
+                  Row: {
+                    "destination_country": string,"fetched_at": string,"link": string | null,"passport_country": string,"raw": Json | null,"source": string,"status": string,"stay_days": number | null,"stay_text": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "destination_country": string,"fetched_at"?: string,"link"?: string | null,"passport_country": string,"raw"?: Json | null,"source"?: string,"status": string,"stay_days"?: number | null,"stay_text"?: string | null
+                  }
+                  Update: {
+                    "destination_country"?: string,"fetched_at"?: string,"link"?: string | null,"passport_country"?: string,"raw"?: Json | null,"source"?: string,"status"?: string,"stay_days"?: number | null,"stay_text"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "visa_requirements_destination_country_fkey"
+      columns: ["destination_country"]
+isOneToOne: false
+      referencedRelation: "countries"
+      referencedColumns: ["code"]
+    },{
+      foreignKeyName: "visa_requirements_passport_country_fkey"
+      columns: ["passport_country"]
+isOneToOne: false
+      referencedRelation: "countries"
+      referencedColumns: ["code"]
+    }
+                  ]
                 },"wishlist_items": {
                   Row: {
                     "city": string | null,"country_code": string,"created_at": string,"id": string,"notes": string | null,"target_on": string | null,"user_id": string

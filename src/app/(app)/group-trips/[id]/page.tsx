@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import PageHeader from "@/components/page-header";
 import { loadPhotos } from "@/lib/photos";
+import { loadVisaContext } from "@/lib/visa";
+import { VisaDisclaimer, VisaProvider } from "@/components/visa";
 import { removeMember } from "../actions";
 import InviteForm from "./invite-form";
 import PlacesSection from "./places-section";
@@ -43,9 +45,10 @@ export default async function GroupTripPage({ params, searchParams }: PageProps<
   // Photos of the visited places shown. Storage rules decide what we may see.
   const visitedIds = (places ?? []).filter((p) => p.kind === "visited" && p.place_id).map((p) => p.place_id!);
   const photos = await loadPhotos(supabase, visitedIds);
+  const visa = await loadVisaContext(supabase, user.id, (places ?? []).map((p) => p.country_code!).filter(Boolean));
 
   return (
-    <>
+    <VisaProvider passport={visa.passport} initial={visa.initial} missing={visa.missing}>
       <Button variant="ghost" size="sm" className="mb-2 -ml-2" render={<Link href="/group-trips" />}>
         <ArrowLeft /> Group trips
       </Button>
@@ -129,6 +132,7 @@ export default async function GroupTripPage({ params, searchParams }: PageProps<
           )}
         </div>
       </div>
-    </>
+      <div className="mt-6"><VisaDisclaimer /></div>
+    </VisaProvider>
   );
 }

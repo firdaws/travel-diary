@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { loadVisaContext } from "@/lib/visa";
+import { VisaBadge, VisaDisclaimer, VisaProvider } from "@/components/visa";
 import EntryForm from "@/components/entry-form";
 import EmptyState from "@/components/empty-state";
 import PageHeader from "@/components/page-header";
@@ -26,8 +28,10 @@ export default async function WishlistPage() {
       .order("created_at", { ascending: false }),
   ]);
 
+  const visa = await loadVisaContext(supabase, user.id, items?.map((w) => w.country_code) ?? []);
+
   return (
-    <>
+    <VisaProvider passport={visa.passport} initial={visa.initial} missing={visa.missing}>
       <PageHeader
         title="My wishlist"
         description="Places you'd love to go. Tick them off when you do."
@@ -57,6 +61,7 @@ export default async function WishlistPage() {
                     {w.target_on && (
                       <p className="text-sm text-muted-foreground">Aiming for {formatMonth(w.target_on)}</p>
                     )}
+                    <VisaBadge code={w.country_code} className="mt-1.5" />
                     {w.notes && <p className="mt-2 text-sm whitespace-pre-line">{w.notes}</p>}
                   </div>
                   <div className="flex shrink-0 gap-1">
@@ -95,6 +100,7 @@ export default async function WishlistPage() {
           </CardContent>
         </Card>
       </div>
-    </>
+      <div className="mt-6"><VisaDisclaimer /></div>
+    </VisaProvider>
   );
 }

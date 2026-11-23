@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import type { PhotoItem } from "@/lib/photos";
 import { Card, CardContent } from "@/components/ui/card";
 import EmptyState from "@/components/empty-state";
+import { VisaBadge } from "@/components/visa";
 
 type Place = Database["public"]["Views"]["group_trip_places"]["Row"];
 type Member = { user_id: string; name: string };
@@ -86,6 +87,7 @@ export default function PlacesSection({
                   </span>
                 )}
               </div>
+              <VisaBadge code={c.code} className="self-start" />
               <ul className="flex flex-col gap-1.5 text-sm">
                 {[...c.rows]
                   .sort((a, b) => (a.kind === b.kind ? 0 : a.kind === "visited" ? -1 : 1))

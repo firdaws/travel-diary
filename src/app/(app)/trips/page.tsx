@@ -6,6 +6,8 @@ import { formatMonth } from "@/lib/dates";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { loadPhotos } from "@/lib/photos";
+import { loadVisaContext } from "@/lib/visa";
+import { VisaBadge, VisaDisclaimer, VisaProvider } from "@/components/visa";
 import EntryForm from "@/components/entry-form";
 import TripPhotos from "@/components/trip-photos";
 import EmptyState from "@/components/empty-state";
@@ -28,9 +30,10 @@ export default async function TripsPage() {
   ]);
 
   const photos = await loadPhotos(supabase, trips?.map((t) => t.id) ?? []);
+  const visa = await loadVisaContext(supabase, user.id, trips?.map((t) => t.country_code) ?? []);
 
   return (
-    <>
+    <VisaProvider passport={visa.passport} initial={visa.initial} missing={visa.missing}>
       <PageHeader
         title="Places I've been"
         description="Your travel history. Everyone in your group trips can see it."
@@ -57,6 +60,7 @@ export default async function TripsPage() {
                     {t.city && <span className="font-sans text-base font-normal text-muted-foreground"> · {t.city}</span>}
                   </p>
                   <p className="text-sm text-muted-foreground">{formatMonth(t.visited_on)}</p>
+                  <VisaBadge code={t.country_code} className="mt-1.5" />
                   {t.notes && <p className="mt-2 text-sm whitespace-pre-line">{t.notes}</p>}
                   <div className="mt-3">
                     <TripPhotos
@@ -91,6 +95,7 @@ export default async function TripsPage() {
           </CardContent>
         </Card>
       </div>
-    </>
+      <div className="mt-6"><VisaDisclaimer /></div>
+    </VisaProvider>
   );
 }
