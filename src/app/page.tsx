@@ -36,6 +36,15 @@ export default async function Home() {
         Passport: {profile.passport_country}
       </p>
 
+      <div className="flex gap-3">
+        <Link className="cursor-pointer rounded bg-black px-3 py-2 text-white transition hover:bg-zinc-700 active:scale-[0.98] dark:bg-white dark:text-black dark:hover:bg-zinc-300" href="/trips">
+          Places I&apos;ve been
+        </Link>
+        <Link className="cursor-pointer rounded border border-zinc-300 px-3 py-2 transition hover:bg-zinc-100 active:scale-[0.98] dark:border-zinc-700 dark:hover:bg-zinc-800" href="/wishlist">
+          My wishlist
+        </Link>
+      </div>
+
       <h2 className="mt-2 text-lg font-medium">Your group trips</h2>
       <ul className="flex flex-col gap-2">
         {groupTrips?.length === 0 && (
