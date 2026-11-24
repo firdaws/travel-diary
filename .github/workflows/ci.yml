@@ -59,5 +59,5 @@ jobs:
         with:
           version: latest
       - run: supabase link --project-ref "$PROJECT_REF"
-      - run: supabase db push
-      - run: supabase functions deploy
+      - run: supabase db push --remote --yes
+      - run: supabase functions deploy --yes
