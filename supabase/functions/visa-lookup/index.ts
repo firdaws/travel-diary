@@ -21,8 +21,21 @@ type Visa = { status: Status; stay_days: number | null; stay_text: string | null
 
 class UpstreamError extends Error {}
 
+// CORS: the browser calls this function directly from our website, which is a different
+// origin from Supabase. Before the real request it sends a "preflight" (OPTIONS) asking
+// "may I?". Allowing any origin is safe here because access is decided by the signed-in
+// user's token in the Authorization header, not by cookies.
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
 const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 
 // ---------------------------------------------------------------------------
 // ADAPTER: everything specific to Travel Buddy lives in the next two functions.
@@ -96,6 +109,7 @@ function normalize(payload: unknown): Visa | null {
 // ---------------------------------------------------------------------------
 
 Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Use POST" }, 405);
 
   const body = await req.json().catch(() => ({}));
