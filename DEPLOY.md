@@ -37,9 +37,11 @@ supabase secrets set TRAVEL_BUDDY_API_KEY=<your key>
 
 ## 6. Turn on CI deploys of the database
 GitHub repo → Settings → Secrets and variables → Actions → add:
-- `SUPABASE_ACCESS_TOKEN` (supabase.com/dashboard/account/tokens)
+- `SUPABASE_ACCESS_TOKEN` (supabase.com/dashboard/account/tokens). Make it a scoped token for this project only: Project read, Database (migrations) write, Edge Functions write, everything else None. Set an expiry.
 - `SUPABASE_DB_PASSWORD` (from step 1)
 - `SUPABASE_PROJECT_REF`
+
+CI pushes migrations through the IPv4 pooler because GitHub runners have no IPv6.
 
 Also create an environment named `production` (Settings → Environments); add yourself as a required reviewer if you want a manual approval before each database push.
 
