@@ -58,3 +58,5 @@ npm run test:db                    # run the RLS tests
 npm run types                      # refresh TypeScript types
 ```
 Open a pull request: CI runs the tests. Merge to main: CI pushes the migrations.
+
+<!-- preview test -->
