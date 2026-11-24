@@ -37,6 +37,32 @@ export type Database = {
                   Relationships: [
                     
                   ]
+                },"group_trip_activity": {
+                  Row: {
+                    "actor_id": string | null,"created_at": string,"group_trip_id": string,"id": string,"type": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "actor_id"?: string | null,"created_at"?: string,"group_trip_id": string,"id"?: string,"type": string
+                  }
+                  Update: {
+                    "actor_id"?: string | null,"created_at"?: string,"group_trip_id"?: string,"id"?: string,"type"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "group_trip_activity_actor_id_fkey"
+      columns: ["actor_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "group_trip_activity_group_trip_id_fkey"
+      columns: ["group_trip_id"]
+isOneToOne: false
+      referencedRelation: "group_trips"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"group_trip_members": {
                   Row: {
                     "group_trip_id": string,"joined_at": string,"role": Database["public"]['Enums']["group_trip_role"],"user_id": string
@@ -220,6 +246,9 @@ isOneToOne: false
                            },
 "find_user_id_by_email":
 { Args: { "p_email": string }; Returns: string
+                           },
+"group_trip_id_from_topic":
+{ Args: { "p_topic": string }; Returns: string
                            },
 "is_group_trip_member":
 { Args: { "p_group_trip_id": string }; Returns: boolean

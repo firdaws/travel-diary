@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import PageHeader from "@/components/page-header";
+import GroupLive from "@/components/group-live";
+import { timeAgo } from "@/lib/dates";
 import { loadPhotos } from "@/lib/photos";
 import { loadVisaContext } from "@/lib/visa";
 import { VisaDisclaimer, VisaProvider } from "@/components/visa";
@@ -45,6 +47,15 @@ export default async function GroupTripPage({ params, searchParams }: PageProps<
   // Photos of the visited places shown. Storage rules decide what we may see.
   const visitedIds = (places ?? []).filter((p) => p.kind === "visited" && p.place_id).map((p) => p.place_id!);
   const photos = await loadPhotos(supabase, visitedIds);
+  const { data: activity } = await supabase
+    .from("group_trip_activity")
+    .select("id, type, created_at, profiles(name)")
+    .eq("group_trip_id", id)
+    .order("created_at", { ascending: false })
+    .limit(6);
+
+  const { data: me } = await supabase.from("profiles").select("name").eq("id", user.id).single();
+  const memberList = groupTrip.group_trip_members.map((m) => ({ user_id: m.user_id, name: m.profiles?.name ?? "" }));
   const visa = await loadVisaContext(supabase, user.id, (places ?? []).map((p) => p.country_code!).filter(Boolean));
 
   return (
@@ -55,16 +66,18 @@ export default async function GroupTripPage({ params, searchParams }: PageProps<
       <PageHeader
         title={groupTrip.name}
         description="Where everyone has been, and where they'd like to go."
-        actions={<Badge variant={isOwner ? "default" : "secondary"}>{isOwner ? "You own this" : "Member"}</Badge>}
+        actions={
+          <>
+            <GroupLive groupTripId={groupTrip.id} userId={user.id} userName={me?.name ?? ""} members={memberList} />
+            <Badge variant={isOwner ? "default" : "secondary"}>{isOwner ? "You own this" : "Member"}</Badge>
+          </>
+        }
       />
 
       <div className="grid gap-8 lg:grid-cols-[1fr_20rem]">
         <PlacesSection
           groupTripId={groupTrip.id}
-          members={groupTrip.group_trip_members.map((m) => ({
-            user_id: m.user_id,
-            name: m.profiles?.name ?? "",
-          }))}
+          members={memberList}
           places={places ?? []}
           photos={photos}
           selectedMember={selectedMember}
@@ -118,6 +131,26 @@ export default async function GroupTripPage({ params, searchParams }: PageProps<
               </ul>
             </CardContent>
           </Card>
+
+          {activity && activity.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-heading text-xl">Recent activity</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="flex flex-col gap-2 text-sm">
+                  {activity.map((a) => (
+                    <li key={a.id} className="flex items-baseline justify-between gap-3">
+                      <span>
+                        <strong className="font-medium">{a.profiles?.name || "Someone"}</strong> was added
+                      </span>
+                      <span className="shrink-0 text-xs text-muted-foreground">{timeAgo(a.created_at)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
 
           {isOwner && (
             <Card>

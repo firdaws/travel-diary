@@ -52,8 +52,8 @@ A group trip stores no places itself. It reads its members' `trips` and `wishlis
 | UI | Design system: shadcn/ui, warm teal palette, serif headings, app shell, dark mode, mobile | frontend only | done |
 | 6 | Trip photos | **Storage** (private bucket, signed URLs, storage RLS) | done |
 | 7 | Visa lookup: check our table, call Travel Buddy only on a miss, cache | Edge Functions, secrets | built and tested against a stand-in API; needs a real key and one check of the adapter |
-| 8 | Live updates in the group trip; event when someone joins | **Realtime**, **database webhooks** | |
-| 9 | World map and per-group-trip theme | JSON columns | |
+| 8 | Live updates in the group trip; event when someone joins | **Realtime** (Broadcast from database, private channels, Presence), **database webhook** (pg_net + Vault), activity feed | done |
+| 9 | World map and per-group-trip theme | JSON columns | next |
 | 10 | Tests, CI, preview deploys, production deploy | see below | |
 
 ## Engineering workflow
@@ -77,6 +77,8 @@ A group trip stores no places itself. It reads its members' `trips` and `wishlis
 
 ## Open items
 
+- **Production webhook setup (phase 8):** the trigger reads its URL and secret from Vault, so set them once per environment. In the SQL editor: `select vault.create_secret('https://<project-ref>.supabase.co', 'webhook_base_url');` and `select vault.create_secret('<long random string>', 'webhook_secret');`, then `supabase secrets set WEBHOOK_SECRET=<the same string>`. Locally this is done by `supabase/seed.sql` (runs on `db reset`).
+- Phase 8 limit: the webhook records "member added" when the owner invites, which for brand-new users is before they accept the email. Wording is "was added" for that reason.
 - **Phase 7, to finish:** get a Travel Buddy key (RapidAPI), put it in `supabase/functions/.env` (see `supabase/functions/env.example`), restart `supabase functions serve`, and check the adapter in `supabase/functions/visa-lookup/index.ts` against the real API: the request body field names (`passport`, `destination`) and the response mapping were not confirmed from public docs. Also check whether the free plan returns real data or "demo" data. Production: `supabase secrets set TRAVEL_BUDDY_API_KEY=...`
 - Possible later: Supabase Image Transformations for thumbnails (thumbnails currently load the resized full image)
 - Sign up for a Travel Buddy API key and confirm free-tier limits; check its Endpoints tab for a countries list
