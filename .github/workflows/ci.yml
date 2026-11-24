@@ -59,5 +59,11 @@ jobs:
         with:
           version: latest
       - run: supabase link --project-ref "$PROJECT_REF"
-      - run: supabase db push --remote --yes
+      # GitHub's runners have no IPv6, so the direct database address doesn't work.
+      # We connect through the IPv4 connection pooler instead (same host `supabase link` stores locally).
+      - name: Push migrations
+        run: |
+          PW=$(python3 -c "import os,urllib.parse;print(urllib.parse.quote(os.environ['SUPABASE_DB_PASSWORD'],safe=''))")
+          echo "::add-mask::$PW"
+          supabase db push --yes --db-url "postgresql://postgres.${PROJECT_REF}:${PW}@aws-1-us-east-1.pooler.supabase.com:5432/postgres"
       - run: supabase functions deploy --yes
