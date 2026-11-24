@@ -1,0 +1,63 @@
+# Runs on every push and pull request.
+# 1. "app": lint, type-check and build the Next.js app.
+# 2. "database": start Supabase locally, check migrations apply, run pgTAP tests,
+#    and fail if the generated TypeScript types are out of date.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  app:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx next typegen
+      - run: npm run lint
+      - run: npx tsc --noEmit
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: placeholder
+
+  database:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Start local Supabase (applies all migrations)
+        run: supabase start -x imgproxy,edge-runtime,studio,mailpit,logflare,vector
+      - name: Run pgTAP tests
+        run: supabase test db
+      - name: Check generated types are up to date
+        run: |
+          supabase gen types typescript --local > /tmp/types.ts
+          diff -u src/lib/database.types.ts /tmp/types.ts
+
+  # Pushes new migrations to the real project, only after both jobs pass on main.
+  deploy-database:
+    needs: [app, database]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: supabase link --project-ref "$PROJECT_REF"
+      - run: supabase db push
+      - run: supabase functions deploy

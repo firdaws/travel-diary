@@ -54,7 +54,7 @@ A group trip stores no places itself. It reads its members' `trips` and `wishlis
 | 7 | Visa lookup: check our table, call Travel Buddy only on a miss, cache | Edge Functions, secrets | built and tested against a stand-in API; needs a real key and one check of the adapter |
 | 8 | Live updates in the group trip; event when someone joins | **Realtime** (Broadcast from database, private channels, Presence), **database webhook** (pg_net + Vault), activity feed | done |
 | 9 | World map and per-group-trip theme | jsonb + CHECK constraint, RLS on update, live theme via Realtime | done |
-| 10 | Tests, CI, preview deploys, production deploy | see below | next |
+| 10 | Tests, CI, preview deploys, production deploy | pgTAP RLS tests (16), GitHub Actions CI, DEPLOY.md guide | done locally; accounts/secrets are yours to set up (see DEPLOY.md) |
 
 ## Engineering workflow
 
