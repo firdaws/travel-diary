@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import PageHeader from "@/components/page-header";
 import GroupLive from "@/components/group-live";
+import { themeOf } from "@/lib/themes";
+import ThemePicker from "./theme-picker";
 import { timeAgo } from "@/lib/dates";
 import { loadPhotos } from "@/lib/photos";
 import { loadVisaContext } from "@/lib/visa";
@@ -32,12 +34,13 @@ export default async function GroupTripPage({ params, searchParams }: PageProps<
   // RLS returns nothing if you aren't a member, so outsiders get a 404.
   const { data: groupTrip } = await supabase
     .from("group_trips")
-    .select("id, name, owner_id, group_trip_members(user_id, role, profiles(name, passport_country))")
+    .select("id, name, owner_id, theme, group_trip_members(user_id, role, profiles(name, passport_country))")
     .eq("id", id)
     .single();
   if (!groupTrip) notFound();
 
   const isOwner = groupTrip.owner_id === user.id;
+  const theme = themeOf(groupTrip.theme);
 
   // One query for everyone's places, thanks to the group_trip_places view.
   let placesQuery = supabase.from("group_trip_places").select("*").eq("group_trip_id", id);
@@ -60,9 +63,12 @@ export default async function GroupTripPage({ params, searchParams }: PageProps<
 
   return (
     <VisaProvider passport={visa.passport} initial={visa.initial} missing={visa.missing}>
+      {/* Everything inside picks up this group trip's theme color. */}
+      <div data-group-theme={theme}>
       <Button variant="ghost" size="sm" className="mb-2 -ml-2" render={<Link href="/group-trips" />}>
         <ArrowLeft /> Group trips
       </Button>
+      <div className="mb-3 h-1.5 w-14 rounded-full bg-primary" aria-hidden />
       <PageHeader
         title={groupTrip.name}
         description="Where everyone has been, and where they'd like to go."
@@ -155,6 +161,18 @@ export default async function GroupTripPage({ params, searchParams }: PageProps<
           {isOwner && (
             <Card>
               <CardHeader>
+                <CardTitle className="font-heading text-xl">Theme</CardTitle>
+                <CardDescription>Pick a color for this group trip. Everyone sees it.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ThemePicker groupTripId={groupTrip.id} current={theme} />
+              </CardContent>
+            </Card>
+          )}
+
+          {isOwner && (
+            <Card>
+              <CardHeader>
                 <CardTitle className="font-heading text-xl">Invite someone</CardTitle>
                 <CardDescription>They&apos;ll get an email with a link to join.</CardDescription>
               </CardHeader>
@@ -166,6 +184,7 @@ export default async function GroupTripPage({ params, searchParams }: PageProps<
         </div>
       </div>
       <div className="mt-6"><VisaDisclaimer /></div>
+      </div>
     </VisaProvider>
   );
 }

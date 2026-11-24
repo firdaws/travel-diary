@@ -66,6 +66,11 @@ export default function GroupLive({
           const mine = row.user_id === userId;
           const table = payload?.table as string;
 
+          // Only the owner can change the theme, so skip the toast for their own change.
+          if (table === "group_trips" && event === "UPDATE" && row.owner_id !== userId) {
+            toast("This group trip's look was updated");
+          }
+
           if (event === "INSERT" && !mine) {
             if (table === "trips") toast(`${nameOf(row.user_id)} added a place they've visited`);
             if (table === "wishlist_items") toast(`${nameOf(row.user_id)} added a place to their wishlist`);

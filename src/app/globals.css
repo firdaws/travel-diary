@@ -146,3 +146,41 @@
     @apply font-heading tracking-tight;
   }
 }
+
+/* World map colors. Land is quiet so the marked countries stand out. */
+:root {
+  --map-land: oklch(0.92 0.012 85);
+  --map-stroke: oklch(0.985 0.008 85);
+  --map-visited: oklch(0.6 0.12 165);
+  --map-wish: oklch(0.74 0.14 55);
+}
+.dark {
+  --map-land: oklch(0.3 0.02 225);
+  --map-stroke: oklch(0.2 0.015 225);
+  --map-visited: oklch(0.72 0.12 165);
+  --map-wish: oklch(0.76 0.13 55);
+}
+.map-land { fill: var(--map-land); stroke: var(--map-stroke); stroke-width: 0.6; }
+.map-visited { fill: var(--map-visited); stroke: var(--map-stroke); stroke-width: 0.6; }
+.map-wish { fill: var(--map-wish); stroke: var(--map-stroke); stroke-width: 0.6; }
+.map-visited:hover, .map-wish:hover { filter: brightness(1.08); }
+.map-swatch-visited { background: var(--map-visited); }
+.map-swatch-wish { background: var(--map-wish); }
+
+/* Group trip themes. A group trip page sets data-group-theme="<preset>" on a wrapper,
+   and everything inside (buttons, chips, links, avatars) picks up the new primary color.
+   "teal" is the default, but it still needs its own rule: without one, a teal swatch placed inside an ocean page would inherit ocean's color. Each pair below was checked for readable
+   contrast (at least 4.5:1) in both light and dark mode. */
+[data-group-theme="teal"]   { --primary: oklch(0.45 0.09 195); --primary-foreground: oklch(0.985 0.01 190); --ring: oklch(0.58 0.09 195); }
+[data-group-theme="ocean"]  { --primary: oklch(0.48 0.13 250); --primary-foreground: oklch(0.985 0.01 250); --ring: oklch(0.6 0.12 250); }
+[data-group-theme="sunset"] { --primary: oklch(0.53 0.17 35);  --primary-foreground: oklch(0.985 0.01 35);  --ring: oklch(0.65 0.15 35); }
+[data-group-theme="forest"] { --primary: oklch(0.46 0.11 150); --primary-foreground: oklch(0.985 0.01 150); --ring: oklch(0.6 0.11 150); }
+[data-group-theme="plum"]   { --primary: oklch(0.46 0.14 320); --primary-foreground: oklch(0.985 0.01 320); --ring: oklch(0.6 0.13 320); }
+[data-group-theme="slate"]  { --primary: oklch(0.4 0.03 255);  --primary-foreground: oklch(0.985 0.005 255); --ring: oklch(0.55 0.03 255); }
+
+.dark [data-group-theme="teal"]   { --primary: oklch(0.74 0.1 185);  --primary-foreground: oklch(0.2 0.03 200);  --ring: oklch(0.65 0.09 190); }
+.dark [data-group-theme="ocean"]  { --primary: oklch(0.74 0.11 245); --primary-foreground: oklch(0.2 0.04 250);  --ring: oklch(0.65 0.1 245); }
+.dark [data-group-theme="sunset"] { --primary: oklch(0.76 0.13 40);  --primary-foreground: oklch(0.22 0.05 35);  --ring: oklch(0.68 0.12 40); }
+.dark [data-group-theme="forest"] { --primary: oklch(0.75 0.12 150); --primary-foreground: oklch(0.2 0.04 150);  --ring: oklch(0.66 0.11 150); }
+.dark [data-group-theme="plum"]   { --primary: oklch(0.76 0.11 320); --primary-foreground: oklch(0.2 0.05 320);  --ring: oklch(0.66 0.1 320); }
+.dark [data-group-theme="slate"]  { --primary: oklch(0.8 0.02 255);  --primary-foreground: oklch(0.2 0.02 255);  --ring: oklch(0.65 0.02 255); }

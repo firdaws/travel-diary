@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import EmptyState from "@/components/empty-state";
+import WorldMap, { type MapMark } from "@/components/world-map";
+import { themeOf } from "@/lib/themes";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -22,15 +24,27 @@ export default async function Home() {
   // New users must finish their profile first.
   if (!profile?.passport_country) redirect("/profile");
 
-  const [{ data: trips }, { count: wishCount }, { data: groupTrips }] = await Promise.all([
+  const [{ data: trips }, { count: wishCount }, { data: groupTrips }, { data: wishes }] = await Promise.all([
     supabase
       .from("trips")
       .select("id, country_code, city, visited_on, countries(name)")
       .eq("user_id", user.id)
       .order("visited_on", { ascending: false }),
     supabase.from("wishlist_items").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-    supabase.from("group_trips").select("id, name, owner_id").order("created_at", { ascending: false }),
+    supabase.from("group_trips").select("id, name, owner_id, theme").order("created_at", { ascending: false }),
+    supabase.from("wishlist_items").select("country_code, countries(name)").eq("user_id", user.id),
   ]);
+
+  // Your own map: where you've been, and where you'd like to go.
+  const markMap = new Map<string, MapMark>();
+  for (const t of trips ?? []) {
+    markMap.set(t.country_code, { code: t.country_code, name: t.countries?.name ?? t.country_code, been: ["You"], wants: [] });
+  }
+  for (const w of wishes ?? []) {
+    const m = markMap.get(w.country_code) ?? { code: w.country_code, name: w.countries?.name ?? w.country_code, been: [], wants: [] };
+    m.wants = ["You"];
+    markMap.set(w.country_code, m);
+  }
 
   const countryCount = new Set(trips?.map((t) => t.country_code)).size;
   const firstName = (profile.name || "").split(" ")[0] || "traveler";
@@ -64,6 +78,15 @@ export default async function Home() {
           </Card>
         ))}
       </section>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-heading text-xl">Your map</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <WorldMap marks={[...markMap.values()]} label="You" />
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
@@ -119,7 +142,10 @@ export default async function Home() {
                 href={`/group-trips/${g.id}`}
                 className="-mx-2 flex items-center justify-between rounded-lg px-2 py-2 transition-colors hover:bg-muted"
               >
-                <span className="font-medium">{g.name}</span>
+                <span className="flex items-center gap-2 font-medium">
+                  <span data-group-theme={themeOf(g.theme)} className="size-2.5 shrink-0 rounded-full bg-primary" aria-hidden />
+                  {g.name}
+                </span>
                 <Badge variant={g.owner_id === user.id ? "default" : "secondary"}>
                   {g.owner_id === user.id ? "Owner" : "Member"}
                 </Badge>

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import EmptyState from "@/components/empty-state";
 import PageHeader from "@/components/page-header";
+import { themeOf } from "@/lib/themes";
 import { createGroupTrip } from "./actions";
 
 export default async function GroupTripsPage() {
@@ -18,7 +19,7 @@ export default async function GroupTripsPage() {
 
   const { data: groupTrips } = await supabase
     .from("group_trips")
-    .select("id, name, owner_id, group_trip_members(count)")
+    .select("id, name, owner_id, theme, group_trip_members(count)")
     .order("created_at", { ascending: false });
 
   return (
@@ -42,7 +43,10 @@ export default async function GroupTripsPage() {
                 <Card size="sm" className="transition-colors group-hover:bg-muted/50">
                   <CardContent className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="font-heading text-lg leading-snug font-medium">{g.name}</p>
+                      <p className="font-heading flex items-center gap-2 text-lg leading-snug font-medium">
+                        <span data-group-theme={themeOf(g.theme)} className="size-3 shrink-0 rounded-full bg-primary" aria-hidden />
+                        {g.name}
+                      </p>
                       <p className="text-sm text-muted-foreground">
                         {members} {members === 1 ? "member" : "members"}
                       </p>

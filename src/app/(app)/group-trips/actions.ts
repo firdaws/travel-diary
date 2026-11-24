@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { isThemeKey } from "@/lib/themes";
 
 export async function createGroupTrip(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
@@ -61,5 +62,22 @@ export async function removeMember(groupTripId: string, userId: string) {
     .eq("group_trip_id", groupTripId)
     .eq("user_id", userId);
   if (error) throw new Error(error.message);
+  revalidatePath(`/group-trips/${groupTripId}`);
+}
+
+export async function setGroupTripTheme(groupTripId: string, formData: FormData) {
+  const preset = formData.get("preset");
+  if (!isThemeKey(preset)) return;
+
+  const supabase = await createClient();
+  // RLS only lets the owner update a group trip. For anyone else the update matches zero
+  // rows and raises no error, so we ask for the row back to tell the difference.
+  const { data, error } = await supabase
+    .from("group_trips")
+    .update({ theme: { preset } })
+    .eq("id", groupTripId)
+    .select("id");
+  if (error) throw new Error(error.message);
+  if (!data?.length) throw new Error("Only the owner can change the theme.");
   revalidatePath(`/group-trips/${groupTripId}`);
 }

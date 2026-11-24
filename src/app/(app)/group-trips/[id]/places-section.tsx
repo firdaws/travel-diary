@@ -7,6 +7,7 @@ import type { PhotoItem } from "@/lib/photos";
 import { Card, CardContent } from "@/components/ui/card";
 import EmptyState from "@/components/empty-state";
 import { VisaBadge } from "@/components/visa";
+import WorldMap, { type MapMark } from "@/components/world-map";
 
 type Place = Database["public"]["Views"]["group_trip_places"]["Row"];
 type Member = { user_id: string; name: string };
@@ -38,6 +39,14 @@ export default function PlacesSection({
     .map(([code, v]) => ({ code, ...v, people: new Set(v.rows.map((r) => r.user_id)).size }))
     .sort((a, b) => b.people - a.people || a.name.localeCompare(b.name));
 
+  // Same data as the list, shaped for the map.
+  const marks: MapMark[] = countries.map((c) => ({
+    code: c.code,
+    name: c.name,
+    been: [...new Set(c.rows.filter((r) => r.kind === "visited").map((r) => r.member_name || "Unnamed"))],
+    wants: [...new Set(c.rows.filter((r) => r.kind === "wishlist").map((r) => r.member_name || "Unnamed"))],
+  }));
+
   const chip = (active: boolean) =>
     cn(
       "rounded-full border px-3 py-1 text-sm font-medium transition-colors",
@@ -68,6 +77,14 @@ export default function PlacesSection({
         {countries.length} {countries.length === 1 ? "country" : "countries"} · {places.length}{" "}
         {places.length === 1 ? "place" : "places"}
       </p>
+
+      {countries.length > 0 && (
+        <Card size="sm">
+          <CardContent>
+            <WorldMap marks={marks} label={selectedMember ? "Selected member" : "Everyone"} />
+          </CardContent>
+        </Card>
+      )}
 
       {countries.length === 0 && (
         <EmptyState icon={<Globe2 />} title="Nothing to show yet">
