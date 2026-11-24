@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { CHAT_EVENT } from "@/components/group-chat";
 
 type Member = { user_id: string; name: string };
 type Online = { id: string; name: string };
@@ -65,6 +66,12 @@ export default function GroupLive({
           const row = payload?.record ?? {};
           const mine = row.user_id === userId;
           const table = payload?.table as string;
+
+          // Chat messages go straight to the chat box. No toast, no page refresh.
+          if (table === "group_trip_messages") {
+            window.dispatchEvent(new CustomEvent(CHAT_EVENT, { detail: { event, row } }));
+            return;
+          }
 
           // Only the owner can change the theme, so skip the toast for their own change.
           if (table === "group_trips" && event === "UPDATE" && row.owner_id !== userId) {

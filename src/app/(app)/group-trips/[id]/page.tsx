@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import PageHeader from "@/components/page-header";
 import GroupLive from "@/components/group-live";
+import GroupChat from "@/components/group-chat";
 import { themeOf } from "@/lib/themes";
 import ThemePicker from "./theme-picker";
 import { timeAgo } from "@/lib/dates";
@@ -57,6 +58,21 @@ export default async function GroupTripPage({ params, searchParams }: PageProps<
     .eq("group_trip_id", id)
     .order("created_at", { ascending: false })
     .limit(6);
+
+  // Latest 50 chat messages, shown oldest first.
+  const { data: chat } = await supabase
+    .from("group_trip_messages")
+    .select("id, user_id, body, created_at, profiles(name)")
+    .eq("group_trip_id", id)
+    .order("created_at", { ascending: false })
+    .limit(50);
+  const messages = (chat ?? []).reverse().map((m) => ({
+    id: m.id,
+    user_id: m.user_id,
+    body: m.body,
+    created_at: m.created_at,
+    name: m.profiles?.name ?? null,
+  }));
 
   const { data: me } = await supabase.from("profiles").select("name").eq("id", user.id).single();
   const memberList = groupTrip.group_trip_members.map((m) => ({ user_id: m.user_id, name: m.profiles?.name ?? "" }));
@@ -136,6 +152,16 @@ export default async function GroupTripPage({ params, searchParams }: PageProps<
                   );
                 })}
               </ul>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-heading text-xl">Chat</CardTitle>
+              <CardDescription>Only members of this group trip can read it.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <GroupChat groupTripId={groupTrip.id} userId={user.id} members={memberList} initial={messages} />
             </CardContent>
           </Card>
 

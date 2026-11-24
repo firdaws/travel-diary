@@ -89,6 +89,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"group_trip_messages": {
+                  Row: {
+                    "body": string,"created_at": string,"group_trip_id": string,"id": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "body": string,"created_at"?: string,"group_trip_id": string,"id"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "body"?: string,"created_at"?: string,"group_trip_id"?: string,"id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "group_trip_messages_group_trip_id_fkey"
+      columns: ["group_trip_id"]
+isOneToOne: false
+      referencedRelation: "group_trips"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "group_trip_messages_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"group_trips": {
                   Row: {
                     "created_at": string,"id": string,"name": string,"owner_id": string,"theme": NonNullable<Json>

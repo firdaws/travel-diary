@@ -1,7 +1,7 @@
 -- Row Level Security tests (pgTAP). Run with: supabase test db
 -- Everything runs inside a transaction that is rolled back, so nothing is left behind.
 begin;
-select plan(21);
+select plan(30);
 
 -- Three users: alice owns a group trip, bob is her member, carol is an outsider.
 insert into auth.users (id, email, instance_id, aud, role) values
@@ -125,6 +125,61 @@ select isnt_empty(
 select isnt_empty(
   $$ select 1 from public.trips where user_id = 'aaaaaaaa-0000-0000-0000-000000000001' $$,
   'owner''s own trips survive deleting the group trip');
+
+-- ===== Chat =====
+-- Setup as superuser: Bob was removed earlier, so re-add him; add a message from Alice.
+select set_config('role', 'postgres', true);
+insert into public.group_trips (id, name, owner_id)
+  values ('22222222-0000-0000-0000-000000000002', 'Chat group', 'aaaaaaaa-0000-0000-0000-000000000001');
+insert into public.group_trip_members (group_trip_id, user_id)
+  values ('22222222-0000-0000-0000-000000000002', 'bbbbbbbb-0000-0000-0000-000000000002');
+insert into public.group_trip_messages (id, group_trip_id, user_id, body)
+  values ('99999999-0000-0000-0000-000000000001', '22222222-0000-0000-0000-000000000002',
+          'aaaaaaaa-0000-0000-0000-000000000001', 'Hello from Alice');
+
+select pg_temp.act_as('bbbbbbbb-0000-0000-0000-000000000002');
+
+select isnt_empty(
+  $$ select 1 from public.group_trip_messages $$,
+  'member can read the group chat');
+
+select lives_ok(
+  $$ insert into public.group_trip_messages (group_trip_id, body)
+     values ('22222222-0000-0000-0000-000000000002', 'Hi Alice') $$,
+  'member can post, and is recorded as the sender');
+
+select throws_ok(
+  $$ insert into public.group_trip_messages (group_trip_id, user_id, body)
+     values ('22222222-0000-0000-0000-000000000002', 'aaaaaaaa-0000-0000-0000-000000000001', 'fake') $$,
+  '42501', null, 'member cannot post as someone else');
+
+select throws_ok(
+  $$ insert into public.group_trip_messages (group_trip_id, body)
+     values ('22222222-0000-0000-0000-000000000002', '   ') $$,
+  '23514', null, 'blank messages are rejected');
+
+select is_empty(
+  $$ delete from public.group_trip_messages where user_id = 'aaaaaaaa-0000-0000-0000-000000000001' returning 1 $$,
+  'member cannot delete someone else''s message');
+
+select is_empty(
+  $$ update public.group_trip_messages set body = 'edited' returning 1 $$,
+  'messages cannot be edited');
+
+select isnt_empty(
+  $$ delete from public.group_trip_messages where body = 'Hi Alice' returning 1 $$,
+  'member can delete their own message');
+
+select pg_temp.act_as('cccccccc-0000-0000-0000-000000000003');
+
+select is_empty(
+  $$ select 1 from public.group_trip_messages $$,
+  'outsider cannot read the chat');
+
+select throws_ok(
+  $$ insert into public.group_trip_messages (group_trip_id, body)
+     values ('22222222-0000-0000-0000-000000000002', 'let me in') $$,
+  '42501', null, 'outsider cannot post');
 
 -- ===== Not signed in =====
 select set_config('role', 'anon', true);
