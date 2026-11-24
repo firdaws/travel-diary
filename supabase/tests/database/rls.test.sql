@@ -1,7 +1,7 @@
 -- Row Level Security tests (pgTAP). Run with: supabase test db
 -- Everything runs inside a transaction that is rolled back, so nothing is left behind.
 begin;
-select plan(16);
+select plan(21);
 
 -- Three users: alice owns a group trip, bob is her member, carol is an outsider.
 insert into auth.users (id, email, instance_id, aud, role) values
@@ -99,6 +99,32 @@ select throws_ok(
 select throws_ok(
   $$ update public.group_trips set theme = '{"preset":"neon"}' $$,
   '23514', null, 'theme CHECK rejects unknown presets');
+
+-- ===== Removing members and deleting the group trip =====
+-- Bob has finished setting up his account (passport country set).
+select set_config('role', 'postgres', true);
+update public.profiles set passport_country = 'FR' where id = 'bbbbbbbb-0000-0000-0000-000000000002';
+select pg_temp.act_as('aaaaaaaa-0000-0000-0000-000000000001');
+
+select is_empty(
+  $$ delete from public.group_trips returning 1 $$,
+  'owner cannot delete the group trip while another member is in it');
+
+select is_empty(
+  $$ delete from public.group_trip_members where role = 'owner' returning 1 $$,
+  'owner cannot remove themselves');
+
+select isnt_empty(
+  $$ delete from public.group_trip_members where user_id = 'bbbbbbbb-0000-0000-0000-000000000002' returning 1 $$,
+  'owner can remove a member who has finished account setup');
+
+select isnt_empty(
+  $$ delete from public.group_trips returning 1 $$,
+  'owner can delete the group trip once alone in it');
+
+select isnt_empty(
+  $$ select 1 from public.trips where user_id = 'aaaaaaaa-0000-0000-0000-000000000001' $$,
+  'owner''s own trips survive deleting the group trip');
 
 -- ===== Not signed in =====
 select set_config('role', 'anon', true);

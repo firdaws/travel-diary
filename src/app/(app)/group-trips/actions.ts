@@ -56,13 +56,29 @@ export async function inviteMember(
 export async function removeMember(groupTripId: string, userId: string) {
   const supabase = await createClient();
   // RLS only allows this for the owner (or for you removing yourself).
-  const { error } = await supabase
+  // A blocked delete matches zero rows and raises no error, so we ask for the row back.
+  const { data, error } = await supabase
     .from("group_trip_members")
     .delete()
     .eq("group_trip_id", groupTripId)
-    .eq("user_id", userId);
+    .eq("user_id", userId)
+    .select("user_id");
   if (error) throw new Error(error.message);
+  if (!data?.length) throw new Error("Couldn't remove that member.");
   revalidatePath(`/group-trips/${groupTripId}`);
+}
+
+export async function deleteGroupTrip(groupTripId: string) {
+  const supabase = await createClient();
+  // RLS only allows this for the owner, and only when no one else is left.
+  const { data, error } = await supabase
+    .from("group_trips")
+    .delete()
+    .eq("id", groupTripId)
+    .select("id");
+  if (error) throw new Error(error.message);
+  if (!data?.length) throw new Error("Remove all other members before deleting this group trip.");
+  redirect("/group-trips");
 }
 
 export async function setGroupTripTheme(groupTripId: string, formData: FormData) {

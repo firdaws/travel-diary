@@ -256,6 +256,9 @@ isOneToOne: false
 "is_group_trip_owner":
 { Args: { "p_group_trip_id": string }; Returns: boolean
                            },
+"is_group_trip_sole_member":
+{ Args: { "p_group_trip_id": string }; Returns: boolean
+                           },
 "mark_wishlist_visited":
 { Args: { "p_item_id": string,"p_visited_on": string }; Returns: string
                            },

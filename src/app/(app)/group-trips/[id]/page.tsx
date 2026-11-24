@@ -16,6 +16,7 @@ import { loadVisaContext } from "@/lib/visa";
 import { VisaDisclaimer, VisaProvider } from "@/components/visa";
 import { removeMember } from "../actions";
 import InviteForm from "./invite-form";
+import DeleteGroupTrip from "./delete-group-trip";
 import PlacesSection from "./places-section";
 
 function initials(name: string) {
@@ -179,6 +180,24 @@ export default async function GroupTripPage({ params, searchParams }: PageProps<
               <CardContent>
                 <InviteForm groupTripId={groupTrip.id} />
               </CardContent>
+            </Card>
+          )}
+
+          {isOwner && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-heading text-xl">Delete group trip</CardTitle>
+                <CardDescription>
+                  {groupTrip.group_trip_members.length === 1
+                    ? "You're the only member left. Everyone's own trips and wishlists stay safe; only this group is removed."
+                    : "Remove all other members first. You can delete it once you're the only one left."}
+                </CardDescription>
+              </CardHeader>
+              {groupTrip.group_trip_members.length === 1 && (
+                <CardContent>
+                  <DeleteGroupTrip groupTripId={groupTrip.id} />
+                </CardContent>
+              )}
             </Card>
           )}
         </div>
