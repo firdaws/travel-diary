@@ -58,7 +58,10 @@ async function fetchFromTravelBuddy(passport: string, destination: string): Prom
 // and we never cache what we don't understand.
 function normalize(payload: unknown): Visa | null {
   // deno-lint-ignore no-explicit-any
-  const rules = (payload as any)?.visa_rules;
+  // The real API wraps its answer in {"data": {...}}; unwrap it if present.
+  const body = (payload as any)?.data ?? payload;
+  // deno-lint-ignore no-explicit-any
+  const rules = (body as any)?.visa_rules;
   const rule = rules?.primary_rule;
   if (!rule) return null;
 
