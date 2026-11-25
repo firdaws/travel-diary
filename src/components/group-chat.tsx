@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Send, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
@@ -37,6 +37,19 @@ export default function GroupChat({
 
   const nameOf = (id: string) => membersRef.current.find((m) => m.user_id === id)?.name || null;
 
+  // Tell the database you have read the chat. Only counts while this tab is visible.
+  const markRead = useCallback(() => {
+    if (document.visibilityState !== "visible") return;
+    createClient().rpc("mark_chat_read", { p_group_trip_id: groupTripId }).then(() => {});
+  }, [groupTripId]);
+
+  // Opening the page (or coming back to this tab) marks the chat as read.
+  useEffect(() => {
+    markRead();
+    document.addEventListener("visibilitychange", markRead);
+    return () => document.removeEventListener("visibilitychange", markRead);
+  }, [markRead]);
+
   // Messages announced by the database: add new ones, drop deleted ones. Ignore duplicates,
   // because we also add our own message as soon as the insert returns.
   useEffect(() => {
@@ -44,6 +57,12 @@ export default function GroupChat({
       const { event, row } = (e as CustomEvent).detail as { event: string; row: Record<string, string> };
       if (row.group_trip_id !== groupTripId) return;
       if (event === "INSERT") {
+        // Someone else wrote while you are on this page: tell you, and count it as read.
+        if (row.user_id !== userId) {
+          const who = nameOf(row.user_id) || "Someone";
+          toast(`${who}: ${row.body.length > 80 ? row.body.slice(0, 80) + "…" : row.body}`);
+          markRead();
+        }
         setMessages((prev) =>
           prev.some((m) => m.id === row.id)
             ? prev
@@ -55,7 +74,7 @@ export default function GroupChat({
     }
     window.addEventListener(CHAT_EVENT, onChat);
     return () => window.removeEventListener(CHAT_EVENT, onChat);
-  }, [groupTripId]);
+  }, [groupTripId, userId, markRead]);
 
   // Keep the newest message in view.
   useEffect(() => {

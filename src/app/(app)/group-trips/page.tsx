@@ -10,6 +10,9 @@ import { Label } from "@/components/ui/label";
 import EmptyState from "@/components/empty-state";
 import PageHeader from "@/components/page-header";
 import { themeOf } from "@/lib/themes";
+import { loadUnread } from "@/lib/unread";
+import UnreadDot from "@/components/unread-dot";
+import UnreadLive from "@/components/unread-live";
 import { createGroupTrip } from "./actions";
 
 export default async function GroupTripsPage() {
@@ -22,8 +25,11 @@ export default async function GroupTripsPage() {
     .select("id, name, owner_id, theme, group_trip_members(count)")
     .order("created_at", { ascending: false });
 
+  const unread = await loadUnread(supabase);
+
   return (
     <>
+      <UnreadLive groupTripIds={(groupTrips ?? []).map((g) => g.id)} userId={user.id} />
       <PageHeader
         title="Group trips"
         description="Pull everyone's visited places and wishlists into one view."
@@ -46,6 +52,7 @@ export default async function GroupTripsPage() {
                       <p className="font-heading flex items-center gap-2 text-lg leading-snug font-medium">
                         <span data-group-theme={themeOf(g.theme)} className="size-3 shrink-0 rounded-full bg-primary" aria-hidden />
                         {g.name}
+                        <UnreadDot count={unread[g.id]} />
                       </p>
                       <p className="text-sm text-muted-foreground">
                         {members} {members === 1 ? "member" : "members"}

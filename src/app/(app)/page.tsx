@@ -9,6 +9,9 @@ import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/componen
 import EmptyState from "@/components/empty-state";
 import WorldMap, { type MapMark } from "@/components/world-map";
 import { themeOf } from "@/lib/themes";
+import { loadUnread } from "@/lib/unread";
+import UnreadDot from "@/components/unread-dot";
+import UnreadLive from "@/components/unread-live";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -35,6 +38,8 @@ export default async function Home() {
     supabase.from("wishlist_items").select("country_code, countries(name)").eq("user_id", user.id),
   ]);
 
+  const unread = await loadUnread(supabase);
+
   // Your own map: where you've been, and where you'd like to go.
   const markMap = new Map<string, MapMark>();
   for (const t of trips ?? []) {
@@ -58,6 +63,7 @@ export default async function Home() {
 
   return (
     <div className="flex flex-col gap-8">
+      <UnreadLive groupTripIds={(groupTrips ?? []).map((g) => g.id)} userId={user.id} />
       <div>
         <h1 className="text-3xl font-semibold sm:text-4xl">Hello, {firstName}</h1>
         <p className="mt-1 text-muted-foreground">Here&apos;s your travel diary at a glance.</p>
@@ -145,6 +151,7 @@ export default async function Home() {
                 <span className="flex items-center gap-2 font-medium">
                   <span data-group-theme={themeOf(g.theme)} className="size-2.5 shrink-0 rounded-full bg-primary" aria-hidden />
                   {g.name}
+                  <UnreadDot count={unread[g.id]} />
                 </span>
                 <Badge variant={g.owner_id === user.id ? "default" : "secondary"}>
                   {g.owner_id === user.id ? "Owner" : "Member"}

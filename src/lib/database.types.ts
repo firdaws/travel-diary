@@ -65,14 +65,14 @@ isOneToOne: false
                   ]
                 },"group_trip_members": {
                   Row: {
-                    "group_trip_id": string,"joined_at": string,"role": Database["public"]['Enums']["group_trip_role"],"user_id": string
+                    "chat_read_at": string,"group_trip_id": string,"joined_at": string,"role": Database["public"]['Enums']["group_trip_role"],"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "group_trip_id": string,"joined_at"?: string,"role"?: Database["public"]['Enums']["group_trip_role"],"user_id": string
+                    "chat_read_at"?: string,"group_trip_id": string,"joined_at"?: string,"role"?: Database["public"]['Enums']["group_trip_role"],"user_id": string
                   }
                   Update: {
-                    "group_trip_id"?: string,"joined_at"?: string,"role"?: Database["public"]['Enums']["group_trip_role"],"user_id"?: string
+                    "chat_read_at"?: string,"group_trip_id"?: string,"joined_at"?: string,"role"?: Database["public"]['Enums']["group_trip_role"],"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -285,11 +285,19 @@ isOneToOne: false
 "is_group_trip_sole_member":
 { Args: { "p_group_trip_id": string }; Returns: boolean
                            },
+"mark_chat_read":
+{ Args: { "p_group_trip_id": string }; Returns: undefined
+                           },
 "mark_wishlist_visited":
 { Args: { "p_item_id": string,"p_visited_on": string }; Returns: string
                            },
 "shares_group_trip_with":
 { Args: { "p_user_id": string }; Returns: boolean
+                           },
+"unread_chat_counts":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "group_trip_id": string,"unread": number
+            }[]
                            }
           }
           Enums: {

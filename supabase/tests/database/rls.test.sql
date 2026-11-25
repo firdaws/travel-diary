@@ -1,7 +1,7 @@
 -- Row Level Security tests (pgTAP). Run with: supabase test db
 -- Everything runs inside a transaction that is rolled back, so nothing is left behind.
 begin;
-select plan(30);
+select plan(35);
 
 -- Three users: alice owns a group trip, bob is her member, carol is an outsider.
 insert into auth.users (id, email, instance_id, aud, role) values
@@ -180,6 +180,44 @@ select throws_ok(
   $$ insert into public.group_trip_messages (group_trip_id, body)
      values ('22222222-0000-0000-0000-000000000002', 'let me in') $$,
   '42501', null, 'outsider cannot post');
+
+-- ===== Unread chat =====
+-- Setup: in the chat group, Bob last read an hour ago; Alice writes one message after that
+-- and an older message from before (which Bob has already read).
+select set_config('role', 'postgres', true);
+update public.group_trip_members set chat_read_at = now() - interval '1 hour'
+  where group_trip_id = '22222222-0000-0000-0000-000000000002' and user_id = 'bbbbbbbb-0000-0000-0000-000000000002';
+update public.group_trip_messages set created_at = now() - interval '2 hours'
+  where id = '99999999-0000-0000-0000-000000000001';
+insert into public.group_trip_messages (group_trip_id, user_id, body)
+  values ('22222222-0000-0000-0000-000000000002', 'aaaaaaaa-0000-0000-0000-000000000001', 'New since you looked');
+
+select pg_temp.act_as('bbbbbbbb-0000-0000-0000-000000000002');
+
+select results_eq(
+  $$ select unread::int from public.unread_chat_counts() where group_trip_id = '22222222-0000-0000-0000-000000000002' $$,
+  $$ values (1) $$,
+  'member sees only messages from others sent after they last read');
+
+select lives_ok(
+  $$ select public.mark_chat_read('22222222-0000-0000-0000-000000000002') $$,
+  'member can mark the chat as read');
+
+select is_empty(
+  $$ select 1 from public.unread_chat_counts() $$,
+  'after marking read there is nothing unread');
+
+select pg_temp.act_as('aaaaaaaa-0000-0000-0000-000000000001');
+
+select is_empty(
+  $$ select 1 from public.unread_chat_counts() $$,
+  'your own messages never count as unread');
+
+select pg_temp.act_as('cccccccc-0000-0000-0000-000000000003');
+
+select is_empty(
+  $$ select 1 from public.unread_chat_counts() $$,
+  'outsider has no unread counts');
 
 -- ===== Not signed in =====
 select set_config('role', 'anon', true);
