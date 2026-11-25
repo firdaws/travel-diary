@@ -1,5 +1,9 @@
+"use client"
+
 import { Button as ButtonPrimitive } from "@base-ui/react/button"
 import { cva, type VariantProps } from "class-variance-authority"
+import { Loader2 } from "lucide-react"
+import { useFormStatus } from "react-dom"
 import { cn } from "cn"
 
 const buttonVariants = cva(
@@ -39,20 +43,34 @@ const buttonVariants = cva(
   }
 )
 
+// Shows a spinner and blocks double clicks while busy. Two ways to be busy:
+// - a submit button inside a <form action={...}> is busy automatically while the action runs;
+// - anything else (onClick handlers) passes loading={true}.
 function Button({
   className,
   variant = "default",
   size = "default",
+  loading = false,
+  children,
+  disabled,
   ...props
-}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants> & { loading?: boolean }) {
+  const { pending: formPending } = useFormStatus()
+  const busy = loading || (props.type === "submit" && formPending)
+  const iconOnly = typeof size === "string" && size.startsWith("icon")
   return (
     <ButtonPrimitive
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
       // When rendered as a link (render={<Link />}) it isn't a native <button>.
       nativeButton={props.render ? false : undefined}
+      disabled={disabled || busy}
+      aria-busy={busy || undefined}
       {...props}
-    />
+    >
+      {busy && <Loader2 className="animate-spin" aria-hidden />}
+      {busy && iconOnly ? null : children}
+    </ButtonPrimitive>
   )
 }
 

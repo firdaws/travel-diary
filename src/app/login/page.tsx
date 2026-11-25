@@ -28,6 +28,8 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [linkBusy, setLinkBusy] = useState(false);
+  const [googleBusy, setGoogleBusy] = useState(false);
 
   const redirectTo = () => `${window.location.origin}/auth/callback`;
 
@@ -59,20 +61,27 @@ export default function LoginPage() {
 
   async function magicLink() {
     if (!email) return toast.error("Enter your email first.");
+    setLinkBusy(true);
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: redirectTo() },
     });
+    setLinkBusy(false);
     if (error) toast.error(error.message);
     else toast.success("Check your email for a sign-in link.");
   }
 
   async function google() {
+    setGoogleBusy(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: redirectTo() },
     });
-    if (error) toast.error(error.message);
+    // On success the browser leaves for Google, so keep the spinner until then.
+    if (error) {
+      setGoogleBusy(false);
+      toast.error(error.message);
+    }
   }
 
   const features = [
@@ -123,7 +132,7 @@ export default function LoginPage() {
             {mode === "signin" ? "Sign in to your travel diary." : "Start logging your travels."}
           </p>
 
-          <Button variant="outline" size="lg" className="mt-6 w-full" onClick={google}>
+          <Button variant="outline" size="lg" className="mt-6 w-full" loading={googleBusy} onClick={google}>
             <GoogleIcon /> Continue with Google
           </Button>
 
@@ -143,12 +152,12 @@ export default function LoginPage() {
                 autoComplete={mode === "signin" ? "current-password" : "new-password"}
                 value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
-            <Button type="submit" size="lg" disabled={busy}>
+            <Button type="submit" size="lg" loading={busy}>
               {busy ? "One moment…" : mode === "signin" ? "Sign in" : "Create account"}
             </Button>
           </form>
 
-          <Button variant="ghost" className="mt-2 w-full" onClick={magicLink}>
+          <Button variant="ghost" className="mt-2 w-full" loading={linkBusy} onClick={magicLink}>
             Email me a sign-in link instead
           </Button>
 

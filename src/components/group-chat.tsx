@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Send, Trash2 } from "lucide-react";
+import { Loader2, Send, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,7 @@ export default function GroupChat({
   const [messages, setMessages] = useState(initial);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const membersRef = useRef(members);
   useEffect(() => {
@@ -103,8 +104,10 @@ export default function GroupChat({
   }
 
   async function remove(id: string) {
+    setDeleting(id);
     const supabase = createClient();
     const { data, error } = await supabase.from("group_trip_messages").delete().eq("id", id).select("id");
+    setDeleting(null);
     if (error || !data?.length) {
       toast.error("Couldn't delete that message.");
       return;
@@ -130,10 +133,11 @@ export default function GroupChat({
                   <button
                     type="button"
                     onClick={() => remove(m.id)}
+                    disabled={deleting === m.id}
                     aria-label="Delete message"
-                    className="rounded p-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+                    className="rounded p-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 disabled:opacity-100"
                   >
-                    <Trash2 className="size-3.5" />
+                    {deleting === m.id ? <Loader2 className="size-3.5 animate-spin" /> : <Trash2 className="size-3.5" />}
                   </button>
                 )}
                 <p
@@ -156,7 +160,7 @@ export default function GroupChat({
           placeholder="Write a message"
           aria-label="Message"
         />
-        <Button type="submit" size="icon" disabled={sending || !text.trim()} aria-label="Send">
+        <Button type="submit" size="icon" loading={sending} disabled={!text.trim()} aria-label="Send">
           <Send />
         </Button>
       </form>

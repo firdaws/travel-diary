@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ImagePlus, X } from "lucide-react";
+import { ImagePlus, Loader2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { PHOTO_BUCKET, type PhotoItem } from "@/lib/photos";
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,7 @@ export default function TripPhotos({
   const supabase = createClient();
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
+  const [removing, setRemoving] = useState<string | null>(null);
 
   async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
@@ -90,11 +91,19 @@ export default function TripPhotos({
 
   async function remove(photo: PhotoItem) {
     // Delete the file first, then the row. RLS only allows your own.
+    setRemoving(photo.id);
     const { error: fileError } = await supabase.storage.from(PHOTO_BUCKET).remove([photo.path]);
-    if (fileError) return toast.error(fileError.message);
+    if (fileError) {
+      setRemoving(null);
+      return toast.error(fileError.message);
+    }
     const { error: rowError } = await supabase.from("trip_photos").delete().eq("id", photo.id);
-    if (rowError) return toast.error(rowError.message);
+    if (rowError) {
+      setRemoving(null);
+      return toast.error(rowError.message);
+    }
     router.refresh();
+    setRemoving(null);
   }
 
   return (
@@ -114,10 +123,11 @@ export default function TripPhotos({
           <button
             type="button"
             onClick={() => remove(p)}
+            disabled={removing === p.id}
             aria-label={`Delete photo ${i + 1} of ${label}`}
-            className="absolute -top-1.5 -right-1.5 flex size-5 cursor-pointer items-center justify-center rounded-full border bg-background text-muted-foreground opacity-0 shadow-sm transition hover:text-destructive focus-visible:opacity-100 group-hover/photo:opacity-100 max-md:opacity-100"
+            className="absolute -top-1.5 -right-1.5 flex size-5 cursor-pointer items-center justify-center rounded-full border bg-background text-muted-foreground opacity-0 shadow-sm transition hover:text-destructive focus-visible:opacity-100 group-hover/photo:opacity-100 max-md:opacity-100 disabled:opacity-100"
           >
-            <X className="size-3" />
+            {removing === p.id ? <Loader2 className="size-3 animate-spin" /> : <X className="size-3" />}
           </button>
         </div>
       ))}
@@ -129,10 +139,10 @@ export default function TripPhotos({
             type="button"
             variant="outline"
             size="sm"
-            disabled={busy}
+            loading={busy}
             onClick={() => input.current?.click()}
           >
-            <ImagePlus /> {busy ? "Uploading…" : photos.length === 0 ? "Add photos" : "Add"}
+            {!busy && <ImagePlus />} {busy ? "Uploading…" : photos.length === 0 ? "Add photos" : "Add"}
           </Button>
         </>
       )}

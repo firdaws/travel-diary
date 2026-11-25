@@ -61,7 +61,7 @@ export default function ProfileForm({
         </NativeSelect>
       </div>
       <div>
-        <Button type="submit" size="lg" disabled={saving}>
+        <Button type="submit" size="lg" loading={saving}>
           {saving ? "Saving…" : firstTime ? "Save and continue" : "Save profile"}
         </Button>
       </div>

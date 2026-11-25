@@ -21,7 +21,7 @@ export default function DeleteGroupTrip({ groupTripId }: { groupTripId: string }
     <div className="flex flex-wrap items-center gap-2">
       <Button
         variant="destructive"
-        disabled={pending}
+        loading={pending}
         onClick={() =>
           start(async () => {
             try {

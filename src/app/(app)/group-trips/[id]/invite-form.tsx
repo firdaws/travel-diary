@@ -31,8 +31,8 @@ export default function InviteForm({ groupTripId }: { groupTripId: string }) {
         <Label htmlFor="invite-email">Email</Label>
         <Input id="invite-email" name="email" type="email" required placeholder="sam@example.com" />
       </div>
-      <Button type="submit" size="lg" disabled={pending}>
-        <Send /> {pending ? "Sending…" : "Send invite"}
+      <Button type="submit" size="lg" loading={pending}>
+        {!pending && <Send />} {pending ? "Sending…" : "Send invite"}
       </Button>
     </form>
   );

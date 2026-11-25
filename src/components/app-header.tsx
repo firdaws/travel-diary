@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import { Compass, LogOut, Monitor, Moon, Sun, UserRound } from "lucide-react";
+import { Compass, Loader2, LogOut, Monitor, Moon, Sun, UserRound } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { useTransition } from "react";
 import { signOut } from "@/app/actions";
 
 const nav = [
@@ -23,6 +24,12 @@ const nav = [
   { href: "/wishlist", label: "Wishlist" },
   { href: "/group-trips", label: "Group trips" },
 ];
+
+// Spinner next to a nav label while that page is loading. Must sit inside the <Link>.
+function LinkSpinner() {
+  const { pending } = useLinkStatus();
+  return pending ? <Loader2 className="ml-1.5 inline size-3 animate-spin" aria-hidden /> : null;
+}
 
 function initials(name: string, email: string) {
   const source = name.trim() || email;
@@ -33,6 +40,7 @@ function initials(name: string, email: string) {
 export default function AppHeader({ name, email }: { name: string; email: string }) {
   const pathname = usePathname();
   const { setTheme } = useTheme();
+  const [signingOut, startSignOut] = useTransition();
 
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 
@@ -60,6 +68,7 @@ export default function AppHeader({ name, email }: { name: string; email: string
               )}
             >
               {item.label}
+              <LinkSpinner />
             </Link>
           ))}
         </nav>
@@ -92,7 +101,13 @@ export default function AppHeader({ name, email }: { name: string; email: string
               <DropdownMenuItem onClick={() => setTheme("dark")}><Moon /> Dark</DropdownMenuItem>
               <DropdownMenuItem onClick={() => setTheme("system")}><Monitor /> System</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => signOut()}><LogOut /> Sign out</DropdownMenuItem>
+              <DropdownMenuItem
+                closeOnClick={false}
+                disabled={signingOut}
+                onClick={() => startSignOut(() => signOut())}
+              >
+                {signingOut ? <Loader2 className="animate-spin" /> : <LogOut />} {signingOut ? "Signing out…" : "Sign out"}
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -112,6 +127,7 @@ export default function AppHeader({ name, email }: { name: string; email: string
             )}
           >
             {item.label}
+            <LinkSpinner />
           </Link>
         ))}
       </nav>
